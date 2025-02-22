@@ -1,116 +1,93 @@
-// src/hooks/useWordCount.ts
-
 import { useState, useEffect } from 'react';
 import { ecfrApi } from '../utils/api';
-import axios from 'axios';
+import axios from 'axios'; // we’ll use axios to fetch titles data
 
-interface WordCountData {
-  totalWords: number;
-  titleBreakdown: {
-    titleId: string;
-    wordCount: number;
-  }[];
+interface WordCount {
+  titleNumber: string | number;
+  count: number;
+  error?: string;
 }
 
 export function useWordCount(agencyId: string | null) {
-  const [wordCountData, setWordCountData] = useState<WordCountData | null>(null);
+  const [wordCounts, setWordCounts] = useState<WordCount[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchWordCounts() {
-      if (!agencyId) return;
+    if (!agencyId) {
+      setWordCounts([]);
+      return;
+    }
 
+    const fetchWordCounts = async () => {
+      setLoading(true);
+      setError(null);
+      
       try {
-        setLoading(true);
-        setError(null);
-
-        // Get agencies data
+        // 1. Get the agency details
         const agencies = await ecfrApi.getAgencies();
-        console.log('Available agencies:', agencies.map(a => ({ id: a.id, name: a.name })));
+        console.log('Available agencies:', agencies);
         console.log('Looking for agency ID:', agencyId);
-
-        const agency = agencies.find(a => a.id === agencyId);
         
+        const agency = agencies.find(a => a.id === agencyId);
         if (!agency) {
-          throw new Error(`Agency with ID ${agencyId} not found`);
+          throw new Error(`Agency not found: ${agencyId}`);
         }
 
-        // Get content for each title and count words
-        const titleCounts = await Promise.all(
-          agency.titles.map(async (titleId) => {
-            try {
-              console.log(`Fetching content for title ${titleId}`);
-              const content = await ecfrApi.getTitleContent(titleId);
-              const wordCount = countWords(content);
-              console.log(`Title ${titleId} word count:`, wordCount);
-              return {
-                titleId,
-                wordCount
-              };
-            } catch (err) {
-              console.error(`Error processing title ${titleId}:`, err);
-              if (axios.isAxiosError(err)) {
-                console.error('API Error details:', {
-                  status: err.response?.status,
-                  message: err.message,
-                  url: err.config?.url
-                });
-              }
-              return {
-                titleId,
-                wordCount: 0
-              };
-            }
-          })
-        );
-
-        const validTitleCounts = titleCounts.filter(title => title.wordCount > 0);
-        const totalWords = validTitleCounts.reduce((sum, title) => sum + title.wordCount, 0);
-
-        setWordCountData({
-          totalWords,
-          titleBreakdown: validTitleCounts
+        // 2. Fetch titles data to determine effective dates
+        const titlesResponse = await axios.get('/api/versioner/v1/titles.json');
+        const titlesData = titlesResponse.data.titles;
+        const titleDateMap = new Map<number, string>();
+        titlesData.forEach((t: any) => {
+          // Use latest_issue_date if available; otherwise, fallback to up_to_date_as_of or a default value
+          titleDateMap.set(
+            Number(t.number), 
+            t.latest_issue_date || t.up_to_date_as_of || '2024-02-21'
+          );
         });
 
-      } catch (err) {
-        console.error('Error in fetchWordCounts:', err);
-        setError(err instanceof Error ? err : new Error('Failed to fetch word counts'));
+        const results: WordCount[] = [];
+
+        // 3. Process each title sequentially
+        for (const title of agency.titles) {
+          try {
+            const effectiveDate = titleDateMap.get(Number(title)) || '2024-02-21';
+            console.log(`Fetching content for title ${title} using date ${effectiveDate}`);
+            const content = await ecfrApi.getTitleContent(title, effectiveDate);
+            
+            // Count words in the content (using JSON string length as a proxy)
+            const wordCount = calculateWordCount(content);
+            
+            results.push({
+              titleNumber: title,
+              count: wordCount
+            });
+          } catch (error: any) {
+            console.error(`Error processing title ${title}:`, error);
+            results.push({
+              titleNumber: title,
+              count: 0,
+              error: error.message
+            });
+          }
+        }
+
+        setWordCounts(results);
+      } catch (error: any) {
+        console.error('Error fetching word counts:', error);
+        setError(error.message);
       } finally {
         setLoading(false);
       }
-    }
+    };
 
     fetchWordCounts();
   }, [agencyId]);
 
-  return { wordCountData, loading, error };
+  return { wordCounts, loading, error };
 }
 
-// Helper function to count words in XML content
-function countWords(xmlContent: string): number {
-  try {
-    // Remove XML comments
-    const noComments = xmlContent.replace(/<!--[\s\S]*?-->/g, '');
-    
-    // Remove XML tags but preserve their content
-    const noTags = noComments.replace(/<[^>]+>/g, ' ');
-    
-    // Handle special characters and punctuation
-    const cleanText = noTags
-      .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-    
-    // Split and filter words
-    const words = cleanText
-      .split(' ')
-      .filter(word => word.length > 0)
-      .filter(word => !/^\d+$/.test(word)); // Exclude pure numbers
-
-    return words.length;
-  } catch (error) {
-    console.error('Error counting words:', error);
-    return 0;
-  }
+function calculateWordCount(content: any): number {
+  // For now, we're using the length of the JSON string as a simple proxy
+  return JSON.stringify(content).length;
 }

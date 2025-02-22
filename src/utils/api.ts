@@ -1,106 +1,81 @@
-// src/utils/api.ts
-
 import axios from 'axios';
 
-// Define API base URL
-const BASE_URL = '/api'; // This will be proxied to https://www.ecfr.gov/api
-
-// Interface matching the actual API response
-export interface ApiAgency {
-  name: string;
-  short_name: string;
-  display_name: string;
-  sortable_name: string;
-  slug: string;
-  children: any[];
-  cfr_references: Array<{
-    title: number;
-    chapter: string;
-  }>;
-}
-
-// Our normalized Agency interface
-export interface Agency {
-  id: string;         // Using short_name as ID
-  name: string;       // Using name
-  titles: string[];   // Extracted from cfr_references
-}
+// Create axios instance with base configuration
+const api = axios.create({
+  baseURL: '/api',  // This will be proxied by Vite to https://www.ecfr.gov/api
+  timeout: 30000
+});
 
 class ECFRClient {
-  private adminClient;
-  private versionerClient;
-  private searchClient;
-
-  constructor() {
-    this.adminClient = axios.create({
-      baseURL: `${BASE_URL}/admin/v1`,
-    });
-
-    this.versionerClient = axios.create({
-      baseURL: `${BASE_URL}/versioner/v1`,
-    });
-
-    this.searchClient = axios.create({
-      baseURL: `${BASE_URL}/search/v1`,
-    });
-  }
-
-  async getAgencies(): Promise<Agency[]> {
+  async getAgencies() {
     try {
       console.log('Fetching agencies...');
-      const response = await this.adminClient.get<{ agencies: ApiAgency[] }>('/agencies.json');
+      const response = await api.get('/admin/v1/agencies.json');
       
-      // Transform API response to our Agency interface
-      const agencies = response.data.agencies.map(agency => ({
-        id: agency.short_name || agency.slug,  // Use short_name as ID, fallback to slug
-        name: agency.name,
-        titles: agency.cfr_references.map(ref => ref.title.toString())
+      // Access the agencies array from the response
+      const { agencies } = response.data;
+      
+      // Transform the response to match your expected format
+      const transformedAgencies = agencies.map(agency => ({
+        id: agency.slug,
+        name: agency.display_name,
+        titles: this.extractUniqueTitles(agency.cfr_references || [])
       }));
-
-      // Log first few agencies after transformation
-      console.log('Transformed agencies:', agencies.slice(0, 3));
-
-      return agencies;
+      
+      console.log('Transformed agencies:', transformedAgencies);
+      return transformedAgencies;
     } catch (error) {
       console.error('Error fetching agencies:', error);
-      throw error;
+      throw this.formatError(error);
     }
   }
 
-  async getTitleContent(title: string, date: string = 'latest'): Promise<string> {
+  async getTitleContent(titleNumber: string | number, date: string = '2024-02-21') {
     try {
-      // Format today's date if 'current' is passed
-      let formattedDate = date;
-      if (date === 'current') {
-        const today = new Date();
-        formattedDate = today.toISOString().split('T')[0]; // YYYY-MM-DD format
-      }
-      
-      console.log(`Fetching content for title ${title} on date ${formattedDate}`);
-      const response = await this.versionerClient.get(`/full/${formattedDate}/title-${title}.xml`);
+      console.log(`Fetching content for title ${titleNumber} on date ${date}`);
+      // Use the structure endpoint instead of full to get title structure
+      const response = await api.get(`/versioner/v1/structure/${date}/title-${titleNumber}.json`);
       return response.data;
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response?.status === 404) {
-        // If the title doesn't exist for current date, try 'latest'
-        if (date !== 'latest') {
-          console.log(`Title ${title} not found for ${date}, trying latest version`);
-          return this.getTitleContent(title, 'latest');
-        }
-      }
-      throw error;
+      console.error(`Error fetching title ${titleNumber}:`, {
+        error,
+        config: error.config,
+        response: error.response
+      });
+      throw this.formatError(error);
     }
   }
 
-  async getTitleStructure(title: string, date: string): Promise<any> {
-    const response = await this.versionerClient.get(`/structure/${date}/title-${title}.json`);
-    return response.data;
+  private extractUniqueTitles(references: Array<{ title: number }>) {
+    // Get unique title numbers from references
+    return [...new Set(references.map(ref => ref.title))];
   }
 
-  async getTitles(): Promise<any[]> {
-    const response = await this.versionerClient.get('/titles.json');
-    return response.data;
+  private formatError(error: any) {
+    if (error.response) {
+      return {
+        status: error.response.status,
+        message: error.response.data?.message || error.message,
+        url: error.config?.url || '',
+        details: error.response.data
+      };
+    } else if (error.request) {
+      return {
+        status: 500,
+        message: 'No response received from server',
+        url: error.config?.url || '',
+        details: error.request
+      };
+    } else {
+      return {
+        status: 500,
+        message: error.message,
+        url: '',
+        details: error
+      };
+    }
   }
 }
 
-// Export a singleton instance
+// Export the API client instance as 'ecfrApi'
 export const ecfrApi = new ECFRClient();
