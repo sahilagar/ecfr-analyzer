@@ -1,4 +1,5 @@
-import React from 'react';
+// src/components/Dashboard.tsx
+import React, { useState } from 'react';
 import { AgencySelector } from './AgencySelector';
 import { useECFRData } from '../hooks/useECFRData';
 import { AgencyMetrics } from './AgencyMetrics';
@@ -27,7 +28,6 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navigation */}
       <nav className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
@@ -40,10 +40,8 @@ export const Dashboard: React.FC = () => {
         </div>
       </nav>
 
-      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="space-y-8">
-          {/* Agency Selection */}
           <section>
             <AgencySelector 
               selectedAgency={selectedAgency}
@@ -52,27 +50,18 @@ export const Dashboard: React.FC = () => {
             />
           </section>
 
-          {/* Agency Metrics (Word Counts) */}
           <section>
             <AgencyMetrics selectedAgency={selectedAgency} />
           </section>
 
-          {/* Change History - Placeholder */}
-          <section className="bg-white shadow rounded-lg p-6">
+          <section>
+            {/* Historical Changes with toggles */}
             <ChangeHistory />
-          </section>
-
-          {/* Cross References - Placeholder */}
-          <section className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">
-              Cross References
-            </h2>
-            <p className="text-gray-500">
-              Reference network visualization will appear here
-            </p>
           </section>
         </div>
       </main>
     </div>
   );
 };
+
+export default Dashboard;

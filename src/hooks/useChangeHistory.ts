@@ -5,15 +5,25 @@ import axios from 'axios';
 interface Correction {
   id: number;
   error_corrected: string;
-  // other fields can be added if needed
 }
 
 export interface TrendData {
-  date: string;
+  date: string;   // e.g. "YYYY-MM-DD" or "YYYY-MM-01" or "YYYY-01-01"
   changes: number;
 }
 
-export function useChangeHistory() {
+/**
+ * Accepts:
+ * - titleNumber: which title to fetch corrections for (if any)
+ * - granularity: "day", "month", or "year"
+ * - startDate, endDate: optional range filters
+ */
+export function useChangeHistory(
+  titleNumber?: number,
+  granularity: 'day'|'month'|'year' = 'day',
+  startDate?: Date,
+  endDate?: Date
+) {
   const [trends, setTrends] = useState<TrendData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,25 +31,35 @@ export function useChangeHistory() {
   useEffect(() => {
     async function fetchCorrections() {
       try {
-        // Fetch the corrections data
-        const response = await axios.get('/api/admin/v1/corrections.json');
-        // Note: the root property is "ecfr_corrections" in your response
-        const corrections: Correction[] = response.data.ecfr_corrections;
-        
-        // Group corrections by the error_corrected date (formatted as YYYY-MM-DD)
-        const grouped: Record<string, number> = corrections.reduce((acc, correction) => {
-          const date = new Date(correction.error_corrected)
-            .toISOString()
-            .split('T')[0];
-          acc[date] = (acc[date] || 0) + 1;
+        // Decide which endpoint to call
+        const endpoint = titleNumber
+          ? `/api/admin/v1/corrections/title/${titleNumber}.json`
+          : '/api/admin/v1/corrections.json';
+
+        const response = await axios.get(endpoint);
+        const corrections: Correction[] = response.data.ecfr_corrections || [];
+
+        // 1. Filter by date range (if startDate/endDate provided)
+        const filtered = corrections.filter(c => {
+          const d = new Date(c.error_corrected);
+          if (startDate && d < startDate) return false;
+          if (endDate && d > endDate) return false;
+          return true;
+        });
+
+        // 2. Group by granularity
+        const grouped: Record<string, number> = filtered.reduce((acc, c) => {
+          const d = new Date(c.error_corrected);
+          const key = getGroupingKey(d, granularity);
+          acc[key] = (acc[key] || 0) + 1;
           return acc;
         }, {} as Record<string, number>);
 
-        // Convert the grouped data into an array and sort by date
+        // 3. Convert to array & sort by ascending date
         const trendsArray: TrendData[] = Object.keys(grouped)
-          .map(date => ({
-            date,
-            changes: grouped[date]
+          .map(dateStr => ({
+            date: dateStr,
+            changes: grouped[dateStr]
           }))
           .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
@@ -52,7 +72,28 @@ export function useChangeHistory() {
     }
 
     fetchCorrections();
-  }, []);
+  }, [titleNumber, granularity, startDate, endDate]);
 
   return { trends, loading, error };
+}
+
+/** 
+ * Returns a date key (string) based on granularity:
+ * - day:   "YYYY-MM-DD"
+ * - month: "YYYY-MM-01"
+ * - year:  "YYYY-01-01"
+ */
+function getGroupingKey(dateObj: Date, granularity: 'day'|'month'|'year'): string {
+  const year = dateObj.getUTCFullYear();
+  const month = String(dateObj.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(dateObj.getUTCDate()).padStart(2, '0');
+
+  if (granularity === 'day') {
+    return `${year}-${month}-${day}`;
+  } else if (granularity === 'month') {
+    return `${year}-${month}-01`;
+  } else {
+    // year
+    return `${year}-01-01`;
+  }
 }

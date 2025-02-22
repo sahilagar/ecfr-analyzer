@@ -1,3 +1,4 @@
+// src/components/AgencySelector.tsx
 import React from 'react';
 import type { Agency } from '../utils/api';
 
@@ -20,7 +21,6 @@ export const AgencySelector: React.FC<AgencySelectorProps> = ({
 
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value;
-    console.log('Selected agency ID:', value);
     onAgencySelect(value === '' ? null : value);
   };
 
@@ -36,20 +36,18 @@ export const AgencySelector: React.FC<AgencySelectorProps> = ({
         id="agency-select"
         value={selectedAgency || ''}
         onChange={handleChange}
-        className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md"
+        className="mt-1 block w-full pl-3 pr-10 py-2 text-base 
+                   border-gray-300 focus:outline-none 
+                   focus:ring-indigo-500 focus:border-indigo-500 
+                   rounded-md"
       >
         <option key="default" value="">Select an agency...</option>
         {sortedAgencies.map((agency) => (
           <option key={agency.id} value={agency.id}>
-            {agency.name}{agency.shortName ? ` (${agency.shortName})` : ''}
+            {agency.name} {agency.shortName ? `(${agency.shortName})` : ''}
           </option>
         ))}
       </select>
-      
-      {/* Debug info */}
-      <div className="mt-2 text-xs text-gray-500">
-        {selectedAgency && `Selected Agency ID: ${selectedAgency}`}
-      </div>
     </div>
   );
 };
