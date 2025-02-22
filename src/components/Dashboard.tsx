@@ -2,6 +2,7 @@ import React from 'react';
 import { AgencySelector } from './AgencySelector';
 import { useECFRData } from '../hooks/useECFRData';
 import { AgencyMetrics } from './AgencyMetrics';
+import { ChangeHistory } from './ChangeHistory';
 
 export const Dashboard: React.FC = () => {
   const { loading, error, agencies, selectedAgency, setSelectedAgency } = useECFRData();
@@ -58,12 +59,7 @@ export const Dashboard: React.FC = () => {
 
           {/* Change History - Placeholder */}
           <section className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">
-              Historical Changes
-            </h2>
-            <p className="text-gray-500">
-              Timeline of regulatory changes will appear here
-            </p>
+            <ChangeHistory />
           </section>
 
           {/* Cross References - Placeholder */}
