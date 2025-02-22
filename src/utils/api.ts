@@ -6,8 +6,15 @@ const api = axios.create({
   timeout: 30000
 });
 
+export interface Agency {
+  id: string;
+  name: string;
+  shortName: string;
+  titles: number[];
+}
+
 class ECFRClient {
-  async getAgencies() {
+  async getAgencies(): Promise<Agency[]> {
     try {
       console.log('Fetching agencies...');
       const response = await api.get('/admin/v1/agencies.json');
@@ -16,9 +23,10 @@ class ECFRClient {
       const { agencies } = response.data;
       
       // Transform the response to match your expected format
-      const transformedAgencies = agencies.map(agency => ({
+      const transformedAgencies = agencies.map((agency: any) => ({
         id: agency.slug,
         name: agency.display_name,
+        shortName: agency.short_name,
         titles: this.extractUniqueTitles(agency.cfr_references || [])
       }));
       
@@ -30,13 +38,12 @@ class ECFRClient {
     }
   }
 
-  async getTitleContent(titleNumber: string | number, date: string = '2024-02-21') {
+  async getTitleContent(titleNumber: string | number, date: string) {
     try {
       console.log(`Fetching content for title ${titleNumber} on date ${date}`);
-      // Use the structure endpoint instead of full to get title structure
       const response = await api.get(`/versioner/v1/structure/${date}/title-${titleNumber}.json`);
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Error fetching title ${titleNumber}:`, {
         error,
         config: error.config,
@@ -77,5 +84,4 @@ class ECFRClient {
   }
 }
 
-// Export the API client instance as 'ecfrApi'
 export const ecfrApi = new ECFRClient();

@@ -1,5 +1,3 @@
-// src/components/Dashboard.tsx
-
 import React from 'react';
 import { AgencySelector } from './AgencySelector';
 import { useECFRData } from '../hooks/useECFRData';
@@ -46,14 +44,14 @@ export const Dashboard: React.FC = () => {
         <div className="space-y-8">
           {/* Agency Selection */}
           <section>
-          <AgencySelector 
-            selectedAgency={selectedAgency}
-            onAgencySelect={setSelectedAgency}
-            agencies={agencies}
+            <AgencySelector 
+              selectedAgency={selectedAgency}
+              onAgencySelect={setSelectedAgency}
+              agencies={agencies}
             />
           </section>
 
-          {/* Agency Metrics */}
+          {/* Agency Metrics (Word Counts) */}
           <section>
             <AgencyMetrics selectedAgency={selectedAgency} />
           </section>

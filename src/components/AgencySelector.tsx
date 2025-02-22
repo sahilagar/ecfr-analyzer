@@ -1,5 +1,3 @@
-// src/components/AgencySelector.tsx
-
 import React from 'react';
 import type { Agency } from '../utils/api';
 
@@ -9,14 +7,14 @@ interface AgencySelectorProps {
   agencies: Agency[];
 }
 
-const AgencySelector: React.FC<AgencySelectorProps> = ({
+export const AgencySelector: React.FC<AgencySelectorProps> = ({
   selectedAgency,
   onAgencySelect,
   agencies = []
 }) => {
   // Sort agencies alphabetically by name
-  const sortedAgencies = React.useMemo(() => 
-    [...agencies].sort((a, b) => a.name.localeCompare(b.name)),
+  const sortedAgencies = React.useMemo(
+    () => [...agencies].sort((a, b) => a.name.localeCompare(b.name)),
     [agencies]
   );
 
@@ -43,7 +41,7 @@ const AgencySelector: React.FC<AgencySelectorProps> = ({
         <option key="default" value="">Select an agency...</option>
         {sortedAgencies.map((agency) => (
           <option key={agency.id} value={agency.id}>
-            {agency.name} ({agency.id})
+            {agency.name}{agency.shortName ? ` (${agency.shortName})` : ''}
           </option>
         ))}
       </select>
@@ -55,6 +53,3 @@ const AgencySelector: React.FC<AgencySelectorProps> = ({
     </div>
   );
 };
-
-export { AgencySelector };
-export default AgencySelector;

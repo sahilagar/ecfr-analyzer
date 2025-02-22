@@ -1,5 +1,3 @@
-// src/hooks/useECFRData.ts
-
 import { useState, useEffect } from 'react';
 import { ecfrApi } from '../utils/api';
 import type { Agency } from '../utils/api';

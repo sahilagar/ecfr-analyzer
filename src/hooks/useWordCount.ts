@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ecfrApi } from '../utils/api';
-import axios from 'axios'; // we’ll use axios to fetch titles data
+import axios from 'axios';
 
 interface WordCount {
   titleNumber: string | number;
@@ -22,7 +22,7 @@ export function useWordCount(agencyId: string | null) {
     const fetchWordCounts = async () => {
       setLoading(true);
       setError(null);
-      
+
       try {
         // 1. Get the agency details
         const agencies = await ecfrApi.getAgencies();
@@ -38,8 +38,9 @@ export function useWordCount(agencyId: string | null) {
         const titlesResponse = await axios.get('/api/versioner/v1/titles.json');
         const titlesData = titlesResponse.data.titles;
         const titleDateMap = new Map<number, string>();
+
         titlesData.forEach((t: any) => {
-          // Use latest_issue_date if available; otherwise, fallback to up_to_date_as_of or a default value
+          // Use latest_issue_date if available; otherwise fallback
           titleDateMap.set(
             Number(t.number), 
             t.latest_issue_date || t.up_to_date_as_of || '2024-02-21'
@@ -48,34 +49,34 @@ export function useWordCount(agencyId: string | null) {
 
         const results: WordCount[] = [];
 
-        // 3. Process each title sequentially
+        // 3. Process each title
         for (const title of agency.titles) {
           try {
             const effectiveDate = titleDateMap.get(Number(title)) || '2024-02-21';
             console.log(`Fetching content for title ${title} using date ${effectiveDate}`);
             const content = await ecfrApi.getTitleContent(title, effectiveDate);
             
-            // Count words in the content (using JSON string length as a proxy)
+            // Count words in the content
             const wordCount = calculateWordCount(content);
             
             results.push({
               titleNumber: title,
               count: wordCount
             });
-          } catch (error: any) {
-            console.error(`Error processing title ${title}:`, error);
+          } catch (err: any) {
+            console.error(`Error processing title ${title}:`, err);
             results.push({
               titleNumber: title,
               count: 0,
-              error: error.message
+              error: err.message
             });
           }
         }
 
         setWordCounts(results);
-      } catch (error: any) {
-        console.error('Error fetching word counts:', error);
-        setError(error.message);
+      } catch (err: any) {
+        console.error('Error fetching word counts:', err);
+        setError(err.message);
       } finally {
         setLoading(false);
       }
@@ -87,7 +88,39 @@ export function useWordCount(agencyId: string | null) {
   return { wordCounts, loading, error };
 }
 
-function calculateWordCount(content: any): number {
-  // For now, we're using the length of the JSON string as a simple proxy
-  return JSON.stringify(content).length;
-}
+function getAllText(content: any): string {
+    let text = '';
+  
+    if (typeof content === 'string') {
+      return content;
+    } else if (Array.isArray(content)) {
+      // Recursively process each item in the array.
+      for (const item of content) {
+        text += ' ' + getAllText(item);
+      }
+    } else if (typeof content === 'object' && content !== null) {
+      // If the object has a "label" or "label_description", include them.
+      if (typeof content.label === 'string') {
+        text += ' ' + content.label;
+      }
+      if (typeof content.label_description === 'string') {
+        text += ' ' + content.label_description;
+      }
+      // Recursively process all keys (except ones already handled).
+      for (const key in content) {
+        if (key !== 'label' && key !== 'label_description') {
+          text += ' ' + getAllText(content[key]);
+        }
+      }
+    }
+    
+    return text;
+  }
+  
+  function calculateWordCount(content: any): number {
+    const allText = getAllText(content);
+    // Split by any whitespace and filter out empty strings.
+    const words = allText.trim().split(/\s+/).filter(word => word.length > 0);
+    return words.length;
+  }
+  
