@@ -1,49 +1,48 @@
 // src/hooks/useECFRData.ts
+
 import { useState, useEffect } from 'react';
-import { ecfrApi, Agency } from '../utils/api';
-import _ from 'lodash';
+import { ecfrApi } from '../utils/api';
+import type { Agency } from '../utils/api';
 
-interface ECFRData {
-  agencies: Agency[];
-  loading: boolean;
-  error: Error | null;
-  selectedAgency: string | null;
-  setSelectedAgency: (agencyId: string) => void;
-}
-
-export function useECFRData(): ECFRData {
+export function useECFRData() {
   const [agencies, setAgencies] = useState<Agency[]>([]);
+  const [selectedAgency, setSelectedAgency] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const [selectedAgency, setSelectedAgency] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchAgencies() {
+    async function fetchData() {
       try {
         setLoading(true);
-        const data = await ecfrApi.getAgencies();
-        // Sort agencies by name for better UX
-        const sortedAgencies = _.sortBy(data, 'name');
-        setAgencies(sortedAgencies);
-        // Set first agency as default selection if none selected
-        if (!selectedAgency && sortedAgencies.length > 0) {
-          setSelectedAgency(sortedAgencies[0].id);
-        }
+        setError(null);
+        const agencyData = await ecfrApi.getAgencies();
+        console.log('First few agencies:', agencyData.slice(0, 3).map(a => ({id: a.id, name: a.name})));
+        setAgencies(agencyData);
       } catch (err) {
+        console.error('Error fetching agencies:', err);
         setError(err instanceof Error ? err : new Error('Failed to fetch agencies'));
       } finally {
         setLoading(false);
       }
     }
 
-    fetchAgencies();
+    fetchData();
   }, []);
+
+  const handleAgencySelect = (agencyId: string | null) => {
+    console.log('Selecting agency ID:', agencyId);
+    if (agencyId) {
+      const agency = agencies.find(a => a.id === agencyId);
+      console.log('Found agency:', agency);
+    }
+    setSelectedAgency(agencyId);
+  };
 
   return {
     agencies,
-    loading,
-    error,
     selectedAgency,
-    setSelectedAgency
+    setSelectedAgency: handleAgencySelect,
+    loading,
+    error
   };
 }

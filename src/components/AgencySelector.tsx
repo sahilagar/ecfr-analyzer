@@ -1,44 +1,60 @@
 // src/components/AgencySelector.tsx
+
 import React from 'react';
-import { useECFRData } from '../hooks/useECFRData';
+import type { Agency } from '../utils/api';
 
-export const AgencySelector: React.FC = () => {
-  const { agencies, loading, error, selectedAgency, setSelectedAgency } = useECFRData();
+interface AgencySelectorProps {
+  selectedAgency: string | null;
+  onAgencySelect: (agencyId: string | null) => void;
+  agencies: Agency[];
+}
 
-  if (loading) {
-    return (
-      <div className="w-full max-w-md animate-pulse">
-        <div className="h-10 bg-gray-200 rounded"></div>
-      </div>
-    );
-  }
+const AgencySelector: React.FC<AgencySelectorProps> = ({
+  selectedAgency,
+  onAgencySelect,
+  agencies = []
+}) => {
+  // Sort agencies alphabetically by name
+  const sortedAgencies = React.useMemo(() => 
+    [...agencies].sort((a, b) => a.name.localeCompare(b.name)),
+    [agencies]
+  );
 
-  if (error) {
-    return (
-      <div className="w-full max-w-md p-4 text-red-600 bg-red-50 rounded">
-        <p>Error loading agencies: {error.message}</p>
-      </div>
-    );
-  }
+  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = event.target.value;
+    console.log('Selected agency ID:', value);
+    onAgencySelect(value === '' ? null : value);
+  };
 
   return (
-    <div className="w-full max-w-md">
-      <label htmlFor="agency-select" className="block text-sm font-medium text-gray-700 mb-2">
+    <div className="bg-white shadow rounded-lg p-6">
+      <label 
+        htmlFor="agency-select" 
+        className="block text-sm font-medium text-gray-700 mb-2"
+      >
         Select Agency
       </label>
       <select
         id="agency-select"
         value={selectedAgency || ''}
-        onChange={(e) => setSelectedAgency(e.target.value)}
-        className="block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+        onChange={handleChange}
+        className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md"
       >
-        <option value="">Select an agency...</option>
-        {agencies.map((agency) => (
-          <option key={agency.id || agency.name} value={agency.id || agency.name}>
-            {agency.name}
+        <option key="default" value="">Select an agency...</option>
+        {sortedAgencies.map((agency) => (
+          <option key={agency.id} value={agency.id}>
+            {agency.name} ({agency.id})
           </option>
         ))}
       </select>
+      
+      {/* Debug info */}
+      <div className="mt-2 text-xs text-gray-500">
+        {selectedAgency && `Selected Agency ID: ${selectedAgency}`}
+      </div>
     </div>
   );
 };
+
+export { AgencySelector };
+export default AgencySelector;

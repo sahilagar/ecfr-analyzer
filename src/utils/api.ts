@@ -1,29 +1,29 @@
 // src/utils/api.ts
+
 import axios from 'axios';
 
+// Define API base URL
 const BASE_URL = '/api'; // This will be proxied to https://www.ecfr.gov/api
 
-// Types for API responses
-export interface Agency {
-  id: string;
+// Interface matching the actual API response
+export interface ApiAgency {
   name: string;
-  titles: string[];
-}
-
-export interface Correction {
-  date: string;
-  titleNumber: string;
-  description: string;
-  impact: string;
-}
-
-export interface TitleStructure {
-  titleNumber: string;
-  name: string;
-  chapters: Array<{
-    number: string;
-    name: string;
+  short_name: string;
+  display_name: string;
+  sortable_name: string;
+  slug: string;
+  children: any[];
+  cfr_references: Array<{
+    title: number;
+    chapter: string;
   }>;
+}
+
+// Our normalized Agency interface
+export interface Agency {
+  id: string;         // Using short_name as ID
+  name: string;       // Using name
+  titles: string[];   // Extracted from cfr_references
 }
 
 class ECFRClient {
@@ -32,7 +32,6 @@ class ECFRClient {
   private searchClient;
 
   constructor() {
-    // Create separate clients for different API services
     this.adminClient = axios.create({
       baseURL: `${BASE_URL}/admin/v1`,
     });
@@ -46,61 +45,59 @@ class ECFRClient {
     });
   }
 
-  // Admin Service Methods
   async getAgencies(): Promise<Agency[]> {
     try {
       console.log('Fetching agencies...');
-      const response = await this.adminClient.get('/agencies.json');
-      console.log('Agencies response:', response.data);
-      return response.data.agencies;
+      const response = await this.adminClient.get<{ agencies: ApiAgency[] }>('/agencies.json');
+      
+      // Transform API response to our Agency interface
+      const agencies = response.data.agencies.map(agency => ({
+        id: agency.short_name || agency.slug,  // Use short_name as ID, fallback to slug
+        name: agency.name,
+        titles: agency.cfr_references.map(ref => ref.title.toString())
+      }));
+
+      // Log first few agencies after transformation
+      console.log('Transformed agencies:', agencies.slice(0, 3));
+
+      return agencies;
     } catch (error) {
       console.error('Error fetching agencies:', error);
-      if (axios.isAxiosError(error)) {
-        console.error('Axios error details:', {
-          response: error.response?.data,
-          status: error.response?.status,
-          headers: error.response?.headers
-        });
-        throw new Error(`Failed to fetch agencies: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async getTitleContent(title: string, date: string = 'latest'): Promise<string> {
+    try {
+      // Format today's date if 'current' is passed
+      let formattedDate = date;
+      if (date === 'current') {
+        const today = new Date();
+        formattedDate = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+      }
+      
+      console.log(`Fetching content for title ${title} on date ${formattedDate}`);
+      const response = await this.versionerClient.get(`/full/${formattedDate}/title-${title}.xml`);
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        // If the title doesn't exist for current date, try 'latest'
+        if (date !== 'latest') {
+          console.log(`Title ${title} not found for ${date}, trying latest version`);
+          return this.getTitleContent(title, 'latest');
+        }
       }
       throw error;
     }
   }
 
-  async getCorrections(): Promise<Correction[]> {
-    const response = await this.adminClient.get('/corrections.json');
-    return response.data;
-  }
-
-  async getTitleCorrections(title: string): Promise<Correction[]> {
-    const response = await this.adminClient.get(`/corrections/title/${title}.json`);
-    return response.data;
-  }
-
-  // Versioner Service Methods
-  async getTitleContent(title: string, date: string): Promise<string> {
-    const response = await this.versionerClient.get(`/full/${date}/title-${title}.xml`);
-    return response.data;
-  }
-
-  async getTitleStructure(title: string, date: string): Promise<TitleStructure> {
+  async getTitleStructure(title: string, date: string): Promise<any> {
     const response = await this.versionerClient.get(`/structure/${date}/title-${title}.json`);
     return response.data;
   }
 
-  async getTitles(): Promise<TitleStructure[]> {
+  async getTitles(): Promise<any[]> {
     const response = await this.versionerClient.get('/titles.json');
-    return response.data;
-  }
-
-  // Search Service Methods
-  async getDailyCounts(): Promise<Record<string, number>> {
-    const response = await this.searchClient.get('/counts/daily');
-    return response.data;
-  }
-
-  async getTitleCounts(): Promise<Record<string, number>> {
-    const response = await this.searchClient.get('/counts/titles');
     return response.data;
   }
 }
