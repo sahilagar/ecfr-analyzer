@@ -1,5 +1,5 @@
 // src/components/ChangeHistory.tsx
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useChangeHistory } from '../hooks/useChangeHistory';
 import {
   Chart as ChartJS,
@@ -43,9 +43,6 @@ export const ChangeHistory: React.FC = () => {
   // Default to "all" time
   const [dateRange, setDateRange] = useState<DateRangePreset>('all');
 
-  // State for chart height
-  const [chartHeight, setChartHeight] = useState<string>(calculateChartHeight());
-
   // Convert the dateRange preset into actual start/end dates
   const { startDate, endDate } = getDateRange(dateRange);
 
@@ -56,19 +53,6 @@ export const ChangeHistory: React.FC = () => {
     startDate,
     endDate
   );
-
-  // Handle window resize
-  const handleResize = useCallback(() => {
-    setChartHeight(calculateChartHeight());
-  }, []);
-
-  // Add resize listener
-  useEffect(() => {
-    window.addEventListener('resize', handleResize);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  }, [handleResize]);
 
   // Format the date for display
   const formatLabel = (dateStr: string) => {
@@ -562,16 +546,4 @@ function getDateRange(preset: DateRangePreset): { startDate?: Date; endDate?: Da
     twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
     return { startDate: twoYearsAgo, endDate: now };
   }
-}
-
-// Helper function to calculate appropriate chart height based on screen size
-function calculateChartHeight(): string {
-  // Use window.innerWidth to determine screen size if available
-  if (typeof window !== 'undefined') {
-    const width = window.innerWidth;
-    if (width < 640) return '350px'; // Small screens
-    if (width < 1024) return '400px'; // Medium screens
-    return '450px'; // Large screens
-  }
-  return '450px'; // Default for SSR
 }
