@@ -1,11 +1,16 @@
 // src/components/Dashboard.tsx
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ChangeHistory } from './ChangeHistory';
 import { AgencyMetrics } from './AgencyMetrics';
 import { useECFRData } from '../hooks/useECFRData';
 
 export const Dashboard: React.FC = () => {
   const { agencies, selectedAgency, setSelectedAgency, loading, error } = useECFRData();
+
+  // Sort agencies alphabetically by name
+  const sortedAgencies = useMemo(() => {
+    return [...agencies].sort((a, b) => a.name.localeCompare(b.name));
+  }, [agencies]);
 
   // Common styles for component containers
   const containerStyle = {
@@ -58,7 +63,7 @@ export const Dashboard: React.FC = () => {
               disabled={loading}
             >
               <option value="">All Agencies</option>
-              {agencies.map((agency) => (
+              {sortedAgencies.map((agency) => (
                 <option key={agency.id} value={agency.id}>
                   {agency.name}
                 </option>
