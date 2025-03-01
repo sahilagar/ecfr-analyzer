@@ -1,12 +1,12 @@
 // src/App.tsx
 
 // import React from 'react';
-import { ChangeHistory } from './components/ChangeHistory';
+import { Dashboard } from './components/Dashboard';
 
 function App() {
   return (
     <div className="App">
-      <ChangeHistory />
+      <Dashboard />
     </div>
   );
 }
