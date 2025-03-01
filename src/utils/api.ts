@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create axios instance with base configuration
 const api = axios.create({
-  baseURL: '/api',  // This will be proxied by Vite to https://www.ecfr.gov/api
+  baseURL: '/api',  // This will be proxied by Vercel to https://www.ecfr.gov/api
   timeout: 30000
 });
 

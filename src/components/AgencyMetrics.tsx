@@ -286,7 +286,7 @@ export const AgencyMetrics: React.FC<AgencyMetricsProps> = ({ selectedAgency }) 
                 barSize={24}
                 animationDuration={800}
               >
-                {chartData.map((entry, index) => (
+                {chartData.map((_, index) => (
                   <Cell key={`cell-${index}`} fill={getBarColor(index)} />
                 ))}
               </Bar>
