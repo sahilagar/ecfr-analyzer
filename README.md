@@ -33,7 +33,7 @@ The eCFR Analyzer provides insights into federal regulations through data visual
 
 1. Clone the repository
    ```
-   git clone https://github.com/yourusername/ecfr-analyzer.git
+   git clone https://github.com/sahilagar/ecfr-analyzer.git
    cd ecfr-analyzer
    ```
 
