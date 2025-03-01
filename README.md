@@ -61,7 +61,6 @@ The eCFR Analyzer provides insights into federal regulations through data visual
 ## Acknowledgments
 
 - Data provided by the [Electronic Code of Federal Regulations](https://www.ecfr.gov/)
-- Built as part of a coding assessment for DOGE
 
 ## License
 
