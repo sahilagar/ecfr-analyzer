@@ -25,15 +25,33 @@ export const AgencySelector: React.FC<AgencySelectorProps> = ({
   };
 
   return (
-    <div className="bg-white shadow rounded-lg p-6 border border-gray-200">
-      <h2 className="text-lg font-semibold text-gray-800 mb-4">Select an Agency</h2>
+    <div style={{ 
+      maxWidth: '800px', 
+      margin: '0 auto',
+      padding: '16px',
+      backgroundColor: 'white',
+      borderRadius: '8px',
+      boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+      border: '1px solid #e5e7eb'
+    }}>
+      <h2 className="text-lg font-semibold text-gray-800 mb-3">Select an Agency</h2>
       
       <div className="relative">
         <select
           id="agency-select"
           value={selectedAgency || ''}
           onChange={handleChange}
-          className="block w-full px-4 py-2.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 appearance-none bg-white"
+          style={{
+            display: 'block',
+            width: '100%',
+            padding: '8px 12px',
+            fontSize: '0.875rem',
+            border: '1px solid #d1d5db',
+            borderRadius: '6px',
+            outline: 'none',
+            appearance: 'none',
+            backgroundColor: 'white'
+          }}
         >
           <option key="default" value="">Select an agency...</option>
           {sortedAgencies.map((agency) => (
@@ -46,17 +64,43 @@ export const AgencySelector: React.FC<AgencySelectorProps> = ({
       
       {/* Display selected agency info */}
       {selectedAgency && (
-        <div className="mt-4">
-          <div className="flex justify-between items-center py-3 px-4 bg-indigo-50 border border-indigo-100 rounded-md shadow-sm">
+        <div style={{ marginTop: '12px' }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '8px 12px',
+            background: 'linear-gradient(to bottom right, #eef2ff, white)',
+            border: '1px solid #e0e7ff',
+            borderRadius: '8px',
+            boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+          }}>
             <div>
-              <div className="text-xs text-indigo-700 uppercase font-medium mb-1">Selected Agency</div>
-              <div className="text-sm text-indigo-900 font-medium">
+              <div style={{ 
+                fontSize: '0.75rem', 
+                fontWeight: '500', 
+                color: '#4f46e5', 
+                textTransform: 'uppercase', 
+                letterSpacing: '0.05em', 
+                marginBottom: '4px'
+              }}>Selected Agency</div>
+              <div style={{ fontSize: '0.875rem', fontWeight: '500', color: '#1f2937' }}>
                 {sortedAgencies.find(a => a.id === selectedAgency)?.name || selectedAgency}
               </div>
             </div>
             <button 
               onClick={() => onAgencySelect(null)}
-              className="text-xs text-white bg-indigo-500 hover:bg-indigo-600 px-3 py-1.5 rounded-md transition-colors font-medium"
+              style={{
+                fontSize: '0.75rem',
+                color: 'white',
+                backgroundColor: '#4f46e5',
+                padding: '4px 8px',
+                borderRadius: '6px',
+                fontWeight: '500',
+                transition: 'background-color 150ms'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#4338ca'}
+              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#4f46e5'}
             >
               Clear
             </button>

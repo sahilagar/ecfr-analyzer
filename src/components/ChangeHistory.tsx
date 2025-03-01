@@ -98,11 +98,11 @@ export const ChangeHistory: React.FC = () => {
         data: trends.map(item => item.changes),
         borderColor: 'rgb(99, 102, 241)',
         backgroundColor: 'rgba(99, 102, 241, 0.2)',
-        borderWidth: 1,
-        pointRadius: 0,
-        pointHoverRadius: 3,
-        tension: 0.1,
-        fill: false,
+        borderWidth: 2,
+        pointRadius: 1,
+        pointHoverRadius: 4,
+        tension: 0.2,
+        fill: true,
       },
     ],
   };
@@ -144,7 +144,10 @@ export const ChangeHistory: React.FC = () => {
           maxRotation: 0,
           minRotation: 0,
           autoSkip: true,
-          maxTicksLimit: 8
+          maxTicksLimit: 12
+        },
+        border: {
+          display: true,
         },
       },
       y: {
@@ -158,24 +161,64 @@ export const ChangeHistory: React.FC = () => {
         grid: {
           color: 'rgba(0, 0, 0, 0.05)',
         },
+        border: {
+          display: true,
+        },
       },
+    },
+    layout: {
+      padding: {
+        left: 10,
+        right: 10,
+        top: 20,
+        bottom: 20
+      }
     },
   };
 
+  // Calculate summary metrics
+  const totalCorrections = !loading && !error && trends.length > 0
+    ? trends.reduce((sum, item) => sum + item.changes, 0)
+    : 0;
+    
+  const averagePerPeriod = !loading && !error && trends.length > 0
+    ? (totalCorrections / trends.length).toFixed(1)
+    : '0';
+    
+  const peakCorrections = !loading && !error && trends.length > 0
+    ? Math.max(...trends.map(item => item.changes))
+    : 0;
+    
+  const peakDate = !loading && !error && trends.length > 0
+    ? formatLabel(trends.find(item => item.changes === peakCorrections)?.date || '')
+    : 'N/A';
+    
+  const dateRangeText = !loading && !error && trends.length > 0
+    ? `${formatLabel(trends[0].date)} - ${formatLabel(trends[trends.length - 1].date)}`
+    : 'N/A';
+
   return (
-    <div className="bg-white p-6">
-      <h2 className="text-lg font-semibold text-gray-800 mb-4">
+    <div style={{ 
+      maxWidth: '800px', 
+      margin: '0 auto',
+      padding: '16px',
+      backgroundColor: 'white',
+      borderRadius: '8px',
+      boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+      border: '1px solid #e5e7eb'
+    }}>
+      <h2 className="text-lg font-semibold text-gray-800 mb-3">
         Historical Changes {titleNumber ? `(Title ${titleNumber})` : '(All Titles)'}
       </h2>
 
-      {/* Controls Section */}
-      <div className="mb-5 grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Controls Section - More compact */}
+      <div className="mb-4 grid grid-cols-1 md:grid-cols-3 gap-3">
         {/* Title selector */}
         <div>
           <label className="text-sm font-medium text-gray-700 mb-1 block">Title:</label>
           <div className="relative">
             <select
-              className="w-full border border-gray-300 rounded-md py-2 px-3 text-sm appearance-none bg-white"
+              className="w-full border border-gray-300 rounded-md py-1.5 px-2 text-sm appearance-none bg-white"
               value={titleNumber || ''}
               onChange={(e) => handleTitleChange(e.target.value)}
             >
@@ -188,33 +231,33 @@ export const ChangeHistory: React.FC = () => {
         {/* Granularity selector */}
         <div>
           <label className="text-sm font-medium text-gray-700 mb-1 block">Time Interval:</label>
-          <div className="flex space-x-2">
+          <div className="flex space-x-1">
             <button
               onClick={() => setGranularity('day')}
-              className={`flex-1 py-2 px-3 text-sm ${
+              className={`flex-1 py-1.5 px-2 text-sm rounded-md transition-all ${
                 granularity === 'day'
-                  ? 'bg-gray-200 text-gray-800'
-                  : 'bg-white text-gray-700 border border-gray-300'
+                  ? 'bg-indigo-100 text-indigo-700 font-medium border border-indigo-200'
+                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
               }`}
             >
               Day
             </button>
             <button
               onClick={() => setGranularity('month')}
-              className={`flex-1 py-2 px-3 text-sm ${
+              className={`flex-1 py-1.5 px-2 text-sm rounded-md transition-all ${
                 granularity === 'month'
-                  ? 'bg-gray-200 text-gray-800'
-                  : 'bg-white text-gray-700 border border-gray-300'
+                  ? 'bg-indigo-100 text-indigo-700 font-medium border border-indigo-200'
+                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
               }`}
             >
               Month
             </button>
             <button
               onClick={() => setGranularity('year')}
-              className={`flex-1 py-2 px-3 text-sm ${
+              className={`flex-1 py-1.5 px-2 text-sm rounded-md transition-all ${
                 granularity === 'year'
-                  ? 'bg-gray-200 text-gray-800'
-                  : 'bg-white text-gray-700 border border-gray-300'
+                  ? 'bg-indigo-100 text-indigo-700 font-medium border border-indigo-200'
+                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
               }`}
             >
               Year
@@ -225,33 +268,33 @@ export const ChangeHistory: React.FC = () => {
         {/* Date range selector */}
         <div>
           <label className="text-sm font-medium text-gray-700 mb-1 block">Time Period:</label>
-          <div className="flex space-x-2">
+          <div className="flex space-x-1">
             <button
               onClick={() => setDateRange('all')}
-              className={`flex-1 py-2 px-3 text-sm ${
+              className={`flex-1 py-1.5 px-2 text-sm rounded-md transition-all ${
                 dateRange === 'all'
-                  ? 'bg-gray-200 text-gray-800'
-                  : 'bg-white text-gray-700 border border-gray-300'
+                  ? 'bg-indigo-100 text-indigo-700 font-medium border border-indigo-200'
+                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
               }`}
             >
               All Time
             </button>
             <button
               onClick={() => setDateRange('1y')}
-              className={`flex-1 py-2 px-3 text-sm ${
+              className={`flex-1 py-1.5 px-2 text-sm rounded-md transition-all ${
                 dateRange === '1y'
-                  ? 'bg-gray-200 text-gray-800'
-                  : 'bg-white text-gray-700 border border-gray-300'
+                  ? 'bg-indigo-100 text-indigo-700 font-medium border border-indigo-200'
+                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
               }`}
             >
               1 Year
             </button>
             <button
               onClick={() => setDateRange('2y')}
-              className={`flex-1 py-2 px-3 text-sm ${
+              className={`flex-1 py-1.5 px-2 text-sm rounded-md transition-all ${
                 dateRange === '2y'
-                  ? 'bg-gray-200 text-gray-800'
-                  : 'bg-white text-gray-700 border border-gray-300'
+                  ? 'bg-indigo-100 text-indigo-700 font-medium border border-indigo-200'
+                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
               }`}
             >
               2 Years
@@ -260,10 +303,109 @@ export const ChangeHistory: React.FC = () => {
         </div>
       </div>
 
-      {/* Chart Section */}
+      {/* Summary Metrics - Centered and bolded */}
+      {!loading && !error && trends.length > 0 && (
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(3, 1fr)', 
+          gap: '12px', 
+          marginBottom: '16px',
+          textAlign: 'center'
+        }}>
+          <div style={{
+            background: 'linear-gradient(to bottom right, #eef2ff, white)',
+            padding: '12px',
+            borderRadius: '8px',
+            border: '1px solid #e0e7ff',
+            boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+          }}>
+            <div>
+              <p style={{ 
+                fontSize: '0.75rem', 
+                fontWeight: '500', 
+                color: '#4f46e5', 
+                textTransform: 'uppercase', 
+                letterSpacing: '0.05em', 
+                marginBottom: '4px'
+              }}>Total</p>
+              <p style={{ 
+                fontSize: '1.5rem', 
+                fontWeight: '800', 
+                color: '#1f2937'
+              }}>
+                {totalCorrections.toLocaleString()}
+              </p>
+            </div>
+            <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '4px' }}>{dateRangeText}</p>
+          </div>
+          
+          <div style={{
+            background: 'linear-gradient(to bottom right, #eff6ff, white)',
+            padding: '12px',
+            borderRadius: '8px',
+            border: '1px solid #dbeafe',
+            boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+          }}>
+            <div>
+              <p style={{ 
+                fontSize: '0.75rem', 
+                fontWeight: '500', 
+                color: '#2563eb', 
+                textTransform: 'uppercase', 
+                letterSpacing: '0.05em', 
+                marginBottom: '4px'
+              }}>Average</p>
+              <p style={{ 
+                fontSize: '1.5rem', 
+                fontWeight: '800', 
+                color: '#1f2937'
+              }}>
+                {averagePerPeriod}
+              </p>
+            </div>
+            <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '4px' }}>per {granularity}</p>
+          </div>
+          
+          <div style={{
+            background: 'linear-gradient(to bottom right, #f5f3ff, white)',
+            padding: '12px',
+            borderRadius: '8px',
+            border: '1px solid #ede9fe',
+            boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+          }}>
+            <div>
+              <p style={{ 
+                fontSize: '0.75rem', 
+                fontWeight: '500', 
+                color: '#7c3aed', 
+                textTransform: 'uppercase', 
+                letterSpacing: '0.05em', 
+                marginBottom: '4px'
+              }}>Peak</p>
+              <p style={{ 
+                fontSize: '1.5rem', 
+                fontWeight: '800', 
+                color: '#1f2937'
+              }}>
+                {peakCorrections.toLocaleString()}
+              </p>
+            </div>
+            <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '4px' }}>on {peakDate}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Chart Section - Fixed height and aspect ratio */}
       <div 
-        className="bg-white border border-gray-200 p-3 mb-4"
-        style={{ height: '280px' }}
+        style={{ 
+          backgroundColor: 'white',
+          border: '1px solid #e5e7eb',
+          borderRadius: '8px',
+          boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+          padding: '12px',
+          marginBottom: '12px',
+          height: '300px'
+        }}
       >
         {loading && (
           <div className="flex items-center justify-center h-full">
@@ -277,10 +419,10 @@ export const ChangeHistory: React.FC = () => {
         {error && !loading && (
           <div className="flex items-center justify-center h-full">
             <div className="text-center p-4">
-              <p className="text-gray-700 mb-1">
+              <p className="text-gray-700 font-medium mb-1">
                 {titleNumber ? `Title ${titleNumber} Data Unavailable` : 'Data Unavailable'}
               </p>
-              <p className="text-gray-600 mb-2">
+              <p className="text-gray-600 mb-3">
                 {titleNumber 
                   ? `Title ${titleNumber} appears to be missing from the eCFR API.`
                   : 'The requested data appears to be missing from the eCFR API.'}
@@ -288,7 +430,7 @@ export const ChangeHistory: React.FC = () => {
               {titleNumber && (
                 <button
                   onClick={() => setTitleNumber(undefined)}
-                  className="bg-gray-200 text-gray-700 py-1 px-3 text-xs"
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 py-1 px-3 text-xs rounded-md transition-colors"
                 >
                   View All Titles
                 </button>
@@ -300,8 +442,8 @@ export const ChangeHistory: React.FC = () => {
         {!loading && !error && trends.length === 0 && (
           <div className="flex items-center justify-center h-full">
             <div className="text-center p-4">
-              <p className="text-gray-500">No changes found</p>
-              <p className="text-gray-400">Try selecting a different title or time period.</p>
+              <p className="text-gray-700 font-medium mb-1">No changes found</p>
+              <p className="text-gray-500">Try selecting a different title or time period.</p>
             </div>
           </div>
         )}
@@ -313,43 +455,6 @@ export const ChangeHistory: React.FC = () => {
           </div>
         )}
       </div>
-
-      {/* Summary Section - Simplified */}
-      {!loading && !error && trends.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-gray-100 p-4">
-            <p className="text-xs text-gray-700 uppercase mb-1">Total Corrections</p>
-            <p className="text-2xl font-semibold text-gray-800">
-              {trends.reduce((sum, item) => sum + item.changes, 0).toLocaleString()}
-            </p>
-            <p className="text-xs text-gray-600 mt-1">
-              {trends.length > 0 
-                ? `${formatLabel(trends[0].date)} - ${formatLabel(trends[trends.length - 1].date)}`
-                : 'N/A'}
-            </p>
-          </div>
-          <div className="bg-gray-100 p-4">
-            <p className="text-xs text-gray-700 uppercase mb-1">Average per {granularity}</p>
-            <p className="text-2xl font-semibold text-gray-800">
-              {trends.length ? (trends.reduce((sum, item) => sum + item.changes, 0) / trends.length).toFixed(1) : '0'}
-            </p>
-            <p className="text-xs text-gray-600 mt-1">corrections</p>
-          </div>
-          <div className="bg-gray-100 p-4">
-            <p className="text-xs text-gray-700 uppercase mb-1">Peak Corrections</p>
-            <p className="text-2xl font-semibold text-gray-800">
-              {trends.length ? Math.max(...trends.map(item => item.changes)).toLocaleString() : '0'}
-            </p>
-            <p className="text-xs text-gray-600 mt-1">
-              {trends.length > 0 
-                ? `on ${formatLabel(trends.find(item => 
-                    item.changes === Math.max(...trends.map(t => t.changes))
-                  )?.date || '')}`
-                : 'N/A'}
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

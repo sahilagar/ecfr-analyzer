@@ -12,10 +12,16 @@ export const Dashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-gray-50">
-        <div className="text-center max-w-sm">
-          <p className="text-gray-700 font-medium text-lg">Loading eCFR data...</p>
-          <p className="text-gray-500 text-sm mt-2">This may take a moment</p>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh',
+        backgroundColor: '#f9fafb'
+      }}>
+        <div style={{ textAlign: 'center', maxWidth: '320px' }}>
+          <p style={{ color: '#374151', fontWeight: '500', fontSize: '1.125rem' }}>Loading eCFR data...</p>
+          <p style={{ color: '#6b7280', fontSize: '0.875rem', marginTop: '8px' }}>This may take a moment</p>
         </div>
       </div>
     );
@@ -23,14 +29,36 @@ export const Dashboard: React.FC = () => {
 
   if (error) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-gray-50">
-        <div className="max-w-md w-full mx-auto px-4">
-          <div className="bg-red-50 p-6 rounded-lg border border-red-200 shadow-sm">
-            <h2 className="text-red-700 text-lg font-semibold mb-3">Error</h2>
-            <p className="text-red-700 text-sm mb-4">Error loading dashboard: {error.message}</p>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh',
+        backgroundColor: '#f9fafb'
+      }}>
+        <div style={{ maxWidth: '448px', width: '100%', margin: '0 auto', padding: '0 16px' }}>
+          <div style={{
+            backgroundColor: '#fef2f2',
+            padding: '24px',
+            borderRadius: '8px',
+            border: '1px solid #fee2e2',
+            boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+          }}>
+            <h2 style={{ color: '#b91c1c', fontSize: '1.125rem', fontWeight: '600', marginBottom: '12px' }}>Error</h2>
+            <p style={{ color: '#b91c1c', fontSize: '0.875rem', marginBottom: '16px' }}>Error loading dashboard: {error.message}</p>
             <button 
               onClick={() => window.location.reload()} 
-              className="bg-red-100 hover:bg-red-200 text-red-700 font-medium py-2 px-4 rounded-md text-sm transition-colors"
+              style={{
+                backgroundColor: '#fee2e2',
+                color: '#b91c1c',
+                fontWeight: '500',
+                padding: '8px 16px',
+                borderRadius: '6px',
+                fontSize: '0.875rem',
+                transition: 'background-color 150ms'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#fecaca'}
+              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#fee2e2'}
             >
               Retry
             </button>
@@ -41,21 +69,31 @@ export const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
       {/* Header - Clean and modern */}
-      <header className="bg-indigo-600 shadow-md">
-        <div className="max-w-5xl mx-auto px-4 w-full">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-bold text-white">eCFR Analyzer</h1>
-              <span className="ml-2 px-2 py-1 bg-indigo-500 rounded-md text-xs text-indigo-100 font-medium">v{APP_VERSION}</span>
+      <header style={{ backgroundColor: '#4f46e5', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
+        <div style={{ maxWidth: '800px', margin: '0 auto', padding: '0 16px', width: '100%' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', height: '56px' }}>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <h1 style={{ fontSize: '1.125rem', fontWeight: '700', color: 'white' }}>eCFR Analyzer</h1>
+              <span style={{ 
+                marginLeft: '8px', 
+                padding: '2px 8px', 
+                backgroundColor: '#4338ca', 
+                borderRadius: '6px', 
+                fontSize: '0.75rem', 
+                color: '#e0e7ff', 
+                fontWeight: '500' 
+              }}>v{APP_VERSION}</span>
             </div>
-            <div className="flex items-center">
+            <div style={{ display: 'flex', alignItems: 'center' }}>
               <a 
                 href="https://github.com/sahilagar/ecfr-analyzer" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-indigo-100 hover:text-white transition-colors text-sm font-medium"
+                style={{ color: '#e0e7ff', fontSize: '0.875rem', fontWeight: '500', transition: 'color 150ms' }}
+                onMouseOver={(e) => e.currentTarget.style.color = 'white'}
+                onMouseOut={(e) => e.currentTarget.style.color = '#e0e7ff'}
               >
                 GitHub
               </a>
@@ -64,30 +102,37 @@ export const Dashboard: React.FC = () => {
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 py-8">
+      <main style={{ maxWidth: '800px', margin: '0 auto', padding: '16px' }}>
         {/* Welcome / Introduction - Modern and informative */}
-        <div className="bg-white shadow-sm rounded-lg p-6 mb-8 border border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-800 mb-3">Welcome to eCFR Analyzer</h2>
-          <p className="text-gray-600 text-base mb-4">
+        <div style={{ 
+          backgroundColor: 'white', 
+          boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', 
+          borderRadius: '8px', 
+          padding: '16px', 
+          marginBottom: '16px', 
+          border: '1px solid #e5e7eb' 
+        }}>
+          <h2 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1f2937', marginBottom: '8px' }}>Welcome to eCFR Analyzer</h2>
+          <p style={{ color: '#4b5563', fontSize: '0.875rem', marginBottom: '12px' }}>
             This tool helps you analyze the Electronic Code of Federal Regulations (eCFR) with data pulled directly from the official API.
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-sm">
-            <div className="flex items-center">
-              <p className="text-gray-700">Explore regulations by agency</p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: '16px', rowGap: '4px', fontSize: '0.875rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <p style={{ color: '#374151', fontSize: '0.875rem' }}>Explore regulations by agency</p>
             </div>
-            <div className="flex items-center">
-              <p className="text-gray-700">View word counts per title</p>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <p style={{ color: '#374151', fontSize: '0.875rem' }}>View word counts per title</p>
             </div>
-            <div className="flex items-center">
-              <p className="text-gray-700">Track historical corrections</p>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <p style={{ color: '#374151', fontSize: '0.875rem' }}>Track historical corrections</p>
             </div>
-            <div className="flex items-center">
-              <p className="text-gray-700">View interactive visualizations</p>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <p style={{ color: '#374151', fontSize: '0.875rem' }}>View interactive visualizations</p>
             </div>
           </div>
         </div>
 
-        <div className="space-y-8">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {/* Agency Selector Section */}
           <section>
             <AgencySelector 
@@ -98,7 +143,7 @@ export const Dashboard: React.FC = () => {
           </section>
 
           {/* Dashboard Layout - Vertical for better content display */}
-          <div className="space-y-8">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {/* Agency Metrics */}
             <section>
               <AgencyMetrics selectedAgency={selectedAgency} />
@@ -111,16 +156,28 @@ export const Dashboard: React.FC = () => {
           </div>
           
           {/* Footer - Clean and professional */}
-          <footer className="mt-12 bg-white shadow-sm rounded-lg p-4 text-center text-gray-500 text-sm border border-gray-200">
+          <footer style={{ 
+            marginTop: '24px', 
+            backgroundColor: 'white', 
+            boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', 
+            borderRadius: '8px', 
+            padding: '12px', 
+            textAlign: 'center', 
+            color: '#6b7280', 
+            fontSize: '0.75rem', 
+            border: '1px solid #e5e7eb' 
+          }}>
             <p>Last updated: {new Date().toLocaleDateString()}</p>
-            <div className="flex justify-center items-center mt-2 space-x-4">
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '4px', gap: '12px' }}>
               <span>eCFR Analyzer v{APP_VERSION}</span>
               <span>|</span>
               <a 
                 href="https://github.com/sahilagar/ecfr-analyzer" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-indigo-500 hover:text-indigo-700 transition-colors"
+                style={{ color: '#4f46e5', transition: 'color 150ms' }}
+                onMouseOver={(e) => e.currentTarget.style.color = '#4338ca'}
+                onMouseOut={(e) => e.currentTarget.style.color = '#4f46e5'}
               >
                 GitHub
               </a>

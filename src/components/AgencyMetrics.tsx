@@ -20,9 +20,25 @@ export const AgencyMetrics: React.FC<AgencyMetricsProps> = ({ selectedAgency }) 
 
   if (!selectedAgency) {
     return (
-      <div className="bg-white shadow rounded-lg p-6 border border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">Agency Word Count</h2>
-        <div className="flex items-center justify-center h-56 bg-gray-50 rounded-md border border-gray-200">
+      <div style={{ 
+        maxWidth: '800px', 
+        margin: '0 auto',
+        padding: '16px',
+        backgroundColor: 'white',
+        borderRadius: '8px',
+        boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+        border: '1px solid #e5e7eb'
+      }}>
+        <h2 className="text-lg font-semibold text-gray-800 mb-3">Agency Word Count</h2>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '160px',
+          backgroundColor: '#f9fafb',
+          borderRadius: '6px',
+          border: '1px solid #e5e7eb'
+        }}>
           <p className="text-gray-500 text-sm">Select an agency to view metrics</p>
         </div>
       </div>
@@ -31,11 +47,27 @@ export const AgencyMetrics: React.FC<AgencyMetricsProps> = ({ selectedAgency }) 
 
   if (loading) {
     return (
-      <div className="bg-white shadow rounded-lg p-6 border border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">Agency Word Count</h2>
-        <div className="flex items-center justify-center h-56 bg-gray-50 rounded-md border border-gray-200">
+      <div style={{ 
+        maxWidth: '800px', 
+        margin: '0 auto',
+        padding: '16px',
+        backgroundColor: 'white',
+        borderRadius: '8px',
+        boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+        border: '1px solid #e5e7eb'
+      }}>
+        <h2 className="text-lg font-semibold text-gray-800 mb-3">Agency Word Count</h2>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '160px',
+          backgroundColor: '#f9fafb',
+          borderRadius: '6px',
+          border: '1px solid #e5e7eb'
+        }}>
           <div className="text-center">
-            <p className="text-gray-700 mb-2">Loading...</p>
+            <p className="text-gray-700 mb-1">Loading...</p>
             <p className="text-gray-500 text-sm">Please wait while we fetch the data</p>
           </div>
         </div>
@@ -45,150 +77,214 @@ export const AgencyMetrics: React.FC<AgencyMetricsProps> = ({ selectedAgency }) 
 
   if (error) {
     return (
-      <div className="bg-white shadow rounded-lg p-6 border border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">Agency Word Count</h2>
+      <div style={{ 
+        maxWidth: '800px', 
+        margin: '0 auto',
+        padding: '16px',
+        backgroundColor: 'white',
+        borderRadius: '8px',
+        boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+        border: '1px solid #e5e7eb'
+      }}>
+        <h2 className="text-lg font-semibold text-gray-800 mb-3">Agency Word Count</h2>
         <div className="p-4 bg-red-50 rounded-md border border-red-200">
-          <p className="text-red-700 text-sm">Error fetching word counts: {error}</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="mt-2 bg-red-100 hover:bg-red-200 text-red-700 font-medium py-1.5 px-3 rounded-md text-xs transition-colors"
-          >
-            Retry
-          </button>
+          <p className="text-red-700 mb-1">Error loading word count data</p>
+          <p className="text-red-600 text-sm">{error}</p>
         </div>
       </div>
     );
   }
 
-  // Handle case where no data was found
-  if (!wordCounts.length) {
-    return (
-      <div className="bg-white shadow rounded-lg p-6 border border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">Agency Word Count</h2>
-        <div className="flex items-center justify-center h-56 bg-gray-50 rounded-md border border-gray-200">
-          <div className="text-center p-4">
-            <p className="text-gray-500 text-sm mb-1">No titles found for this agency</p>
-            <p className="text-gray-400 text-xs">The selected agency may not have any associated titles in the eCFR.</p>
+  // Filter out items with errors
+  const validWordCounts = wordCounts.filter(item => !item.error);
+
+  // Calculate total words across all titles
+  const totalWords = validWordCounts.reduce((sum, item) => sum + item.count, 0);
+  
+  // Calculate average words per title
+  const averageWords = validWordCounts.length > 0 
+    ? Math.round(totalWords / validWordCounts.length) 
+    : 0;
+
+  // Find the title with the most words
+  const maxTitle = validWordCounts.length > 0
+    ? validWordCounts.reduce(
+        (max, item) => (item.count > max.count ? item : max),
+        validWordCounts[0]
+      )
+    : { titleNumber: 'N/A', count: 0 };
+
+  // Format data for the chart
+  const chartData = validWordCounts.map(item => ({
+    title: String(item.titleNumber),
+    wordCount: item.count
+  }));
+
+  return (
+    <div style={{ 
+      maxWidth: '800px', 
+      margin: '0 auto',
+      padding: '16px',
+      backgroundColor: 'white',
+      borderRadius: '8px',
+      boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+      border: '1px solid #e5e7eb'
+    }}>
+      <h2 className="text-lg font-semibold text-gray-800 mb-3">
+        Agency Word Count
+      </h2>
+
+      {/* Summary Metrics - Centered and bolded */}
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(3, 1fr)', 
+        gap: '12px', 
+        marginBottom: '16px',
+        textAlign: 'center'
+      }}>
+        <div style={{
+          background: 'linear-gradient(to bottom right, #eef2ff, white)',
+          padding: '12px',
+          borderRadius: '8px',
+          border: '1px solid #e0e7ff',
+          boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+        }}>
+          <div>
+            <p style={{ 
+              fontSize: '0.75rem', 
+              fontWeight: '500', 
+              color: '#4f46e5', 
+              textTransform: 'uppercase', 
+              letterSpacing: '0.05em', 
+              marginBottom: '4px'
+            }}>Total Words</p>
+            <p style={{ 
+              fontSize: '1.5rem', 
+              fontWeight: '800', 
+              color: '#1f2937'
+            }}>
+              {totalWords.toLocaleString()}
+            </p>
           </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Check if all entries have errors (complete data failure)
-  const allErrors = wordCounts.every(item => Boolean(item.error));
-  if (allErrors) {
-    return (
-      <div className="bg-white shadow rounded-lg p-6 border border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">Agency Word Count</h2>
-        <div className="p-4 bg-red-50 rounded-md border border-red-200 text-center">
-          <p className="text-red-700 text-sm mb-1">Unable to retrieve data for any titles</p>
-          <p className="text-red-600 text-xs mb-2">There may be an issue with the eCFR API or the titles may not exist.</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="bg-red-100 hover:bg-red-200 text-red-700 font-medium py-1.5 px-3 rounded-md text-xs transition-colors"
-          >
-            Retry
-          </button>
         </div>
         
-        <div className="mt-4">
-          <h3 className="text-xs font-medium text-gray-700 mb-2">Error Details:</h3>
-          <ul className="bg-gray-50 rounded-md p-3 text-xs border border-gray-200 max-h-32 overflow-y-auto">
-            {wordCounts.map(({ titleNumber, error }) => (
-              <li key={titleNumber} className="text-gray-700 mb-1">
-                <span className="font-medium">Title {titleNumber}:</span> {error}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    );
-  }
-
-  // Format data for the chart - skip items with errors
-  const chartData = wordCounts
-    .filter(item => !item.error) // Only include successful counts
-    .sort((a, b) => Number(a.titleNumber) - Number(b.titleNumber)) // Sort by title number
-    .map(item => ({
-      title: `${item.titleNumber}`,
-      count: item.count,
-      titleNumber: item.titleNumber
-    }));
-
-  // If there are any errors, show them below the chart
-  const errorItems = wordCounts.filter(item => item.error);
-
-  // Calculate total word count (only from successful items)
-  const totalWordCount = wordCounts.reduce((sum, item) => sum + (item.error ? 0 : item.count), 0);
-  
-  const getBarColor = (index: number) => {
-    // Use a simpler, more cohesive color scheme
-    return index % 2 === 0 ? 'rgb(79, 70, 229)' : 'rgb(99, 102, 241)';
-  };
-  
-  return (
-    <div className="bg-white shadow rounded-lg p-6 border border-gray-200">
-      <h2 className="text-lg font-semibold text-gray-800 mb-4">Agency Word Count</h2>
-      
-      {/* Summary metrics */}
-      <div className="mb-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-indigo-50 p-4 rounded-md border border-indigo-100 shadow-sm">
-            <p className="text-xs text-indigo-700 uppercase font-medium mb-1">Titles</p>
-            <p className="text-2xl font-semibold text-indigo-800">{chartData.length}</p>
-            {errorItems.length > 0 && (
-              <p className="text-xs text-indigo-600 mt-1">
-                ({errorItems.length} unavailable)
-              </p>
-            )}
-          </div>
-          <div className="bg-indigo-50 p-4 rounded-md border border-indigo-100 shadow-sm">
-            <p className="text-xs text-indigo-700 uppercase font-medium mb-1">Total Words</p>
-            <p className="text-2xl font-semibold text-indigo-800">{totalWordCount.toLocaleString()}</p>
-          </div>
-          <div className="bg-indigo-50 p-4 rounded-md border border-indigo-100 shadow-sm">
-            <p className="text-xs text-indigo-700 uppercase font-medium mb-1">Average per Title</p>
-            <p className="text-2xl font-semibold text-indigo-800">
-              {chartData.length ? Math.round(totalWordCount / chartData.length).toLocaleString() : '0'}
+        <div style={{
+          background: 'linear-gradient(to bottom right, #eff6ff, white)',
+          padding: '12px',
+          borderRadius: '8px',
+          border: '1px solid #dbeafe',
+          boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+        }}>
+          <div>
+            <p style={{ 
+              fontSize: '0.75rem', 
+              fontWeight: '500', 
+              color: '#2563eb', 
+              textTransform: 'uppercase', 
+              letterSpacing: '0.05em', 
+              marginBottom: '4px'
+            }}>Average per Title</p>
+            <p style={{ 
+              fontSize: '1.5rem', 
+              fontWeight: '800', 
+              color: '#1f2937'
+            }}>
+              {averageWords.toLocaleString()}
             </p>
-            <p className="text-xs text-indigo-600 mt-1">words</p>
           </div>
+          <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '4px' }}>words</p>
+        </div>
+        
+        <div style={{
+          background: 'linear-gradient(to bottom right, #f5f3ff, white)',
+          padding: '12px',
+          borderRadius: '8px',
+          border: '1px solid #ede9fe',
+          boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+        }}>
+          <div>
+            <p style={{ 
+              fontSize: '0.75rem', 
+              fontWeight: '500', 
+              color: '#7c3aed', 
+              textTransform: 'uppercase', 
+              letterSpacing: '0.05em', 
+              marginBottom: '4px'
+            }}>Largest Title</p>
+            <p style={{ 
+              fontSize: '1.5rem', 
+              fontWeight: '800', 
+              color: '#1f2937'
+            }}>
+              {maxTitle.titleNumber}
+            </p>
+          </div>
+          <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '4px' }}>{maxTitle.count.toLocaleString()} words</p>
         </div>
       </div>
 
-      {/* Chart */}
-      {chartData.length > 0 ? (
-        <div className="mt-4 bg-white rounded-md border border-gray-200 p-3" style={{ height: '280px' }}>
+      {/* Chart - Fixed height and aspect ratio */}
+      <div style={{ 
+        backgroundColor: 'white',
+        border: '1px solid #e5e7eb',
+        borderRadius: '8px',
+        boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+        padding: '16px',
+        marginBottom: '12px',
+        background: 'linear-gradient(to bottom, white, #f9fafb)'
+      }}>
+        <div style={{ height: '250px' }}>
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 20 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f1f1" />
+            <BarChart
+              data={chartData}
+              margin={{
+                top: 10,
+                right: 10,
+                left: 10,
+                bottom: 20,
+              }}
+            >
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.03)" />
               <XAxis 
                 dataKey="title" 
-                angle={0} 
-                textAnchor="middle" 
-                height={25} 
                 tick={{ fontSize: 10 }}
-                axisLine={false}
+                axisLine={{ stroke: '#E5E7EB' }}
                 tickLine={false}
-                label={{ value: 'Title', position: 'insideBottom', offset: -15, fontSize: 10 }}
               />
               <YAxis 
-                tickFormatter={(value) => value >= 1000 ? `${(value/1000).toFixed(0)}k` : value}
-                tick={{ fontSize: 9 }}
-                axisLine={false}
+                tick={{ fontSize: 10 }}
+                axisLine={{ stroke: '#E5E7EB' }}
                 tickLine={false}
-                width={30}
+                width={40}
               />
-              <Tooltip 
-                formatter={(value) => [`${Number(value).toLocaleString()} words`, 'Word Count']}
-                labelFormatter={(value) => `Title ${value}`}
-                contentStyle={{ fontSize: 11, padding: '8px', border: '1px solid #e5e7eb', borderRadius: '4px' }}
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'rgba(67, 56, 202, 0.9)',
+                  border: 'none',
+                  borderRadius: '6px',
+                  color: 'white',
+                  fontSize: '12px',
+                  padding: '10px',
+                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+                }}
+                labelStyle={{ 
+                  fontWeight: 'bold', 
+                  marginBottom: '6px',
+                  fontSize: '13px',
+                  color: 'rgba(255, 255, 255, 0.95)'
+                }}
+                itemStyle={{
+                  padding: '2px 0'
+                }}
+                formatter={(value: number) => [`${value.toLocaleString()} words`, 'Word Count']}
+                labelFormatter={(title) => `Title ${title}`}
+                cursor={{ fill: 'rgba(99, 102, 241, 0.1)' }}
               />
               <Bar 
-                dataKey="count" 
-                barSize={chartData.length > 10 ? 12 : 24} 
-                radius={[4, 4, 0, 0]}
+                dataKey="wordCount" 
+                radius={[4, 4, 0, 0]} 
+                barSize={24}
+                animationDuration={800}
               >
                 {chartData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={getBarColor(index)} />
@@ -197,31 +293,27 @@ export const AgencyMetrics: React.FC<AgencyMetricsProps> = ({ selectedAgency }) 
             </BarChart>
           </ResponsiveContainer>
         </div>
-      ) : (
-        <div className="flex items-center justify-center h-56 bg-gray-50 rounded-md border border-gray-200 mt-4">
-          <p className="text-gray-500 text-sm">No title data available to display</p>
-        </div>
-      )}
-
-      {/* Error items */}
-      {errorItems.length > 0 && (
-        <div className="mt-4">
-          <h3 className="text-xs font-medium text-red-700 mb-2">
-            Titles with Errors ({errorItems.length}):
-          </h3>
-          <ul className="bg-red-50 rounded-md p-3 text-xs border border-red-200 max-h-32 overflow-y-auto">
-            {errorItems.map(({ titleNumber, error }) => (
-              <li key={titleNumber} className="text-red-700 mb-1 flex items-start">
-                <span className="font-medium mr-1 whitespace-nowrap">Title {titleNumber}:</span> 
-                <span className="text-red-600">{error}</span>
-              </li>
-            ))}
-          </ul>
-          <p className="text-xs text-gray-500 mt-1">
-            Some titles may not be available in the eCFR.
-          </p>
-        </div>
-      )}
+      </div>
     </div>
   );
+};
+
+// Function to generate bar colors
+const getBarColor = (index: number) => {
+  const colors = [
+    '#6366f1', // indigo-500
+    '#4f46e5', // indigo-600
+    '#4338ca', // indigo-700
+    '#3730a3', // indigo-800
+    '#818cf8', // indigo-400
+    '#a5b4fc', // indigo-300
+    '#7c3aed', // violet-600
+    '#6d28d9', // violet-700
+    '#5b21b6', // violet-800
+    '#8b5cf6', // violet-500
+    '#2563eb', // blue-600
+    '#3b82f6', // blue-500
+    '#60a5fa', // blue-400
+  ];
+  return colors[index % colors.length];
 };
